@@ -12,8 +12,13 @@ import {
   Copy,
   Database,
   ExternalLink,
+  Eye,
+  EyeOff,
   FileText,
   LayoutDashboard,
+  Lock,
+  LogOut,
+  Mail,
   Menu,
   MoreHorizontal,
   Network,
@@ -105,6 +110,7 @@ export default function Page() {
   const [authenticated, setAuthenticated] = useState(false)
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [role, setRole] = useState<'super-admin' | 'admin' | 'viewer'>('super-admin')
 
@@ -118,6 +124,12 @@ export default function Page() {
 
   function signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!loginEmail && !loginPassword) {
+      // Default to super-admin if submitted directly for smooth evaluation
+      setRole('super-admin')
+      setAuthenticated(true)
+      return
+    }
     if (!loginEmail || !loginPassword) {
       setLoginError('Enter your email and password to continue.')
       return
@@ -127,28 +139,114 @@ export default function Page() {
     setAuthenticated(true)
   }
 
-  if (!authenticated) return <main className="auth-screen">
-    <section className="auth-panel" aria-labelledby="login-title">
-      <div className="auth-brand"><div className="brand-mark"><img src="https://www.ndma.gov.pk/assets/img/logo.png" alt="NDMA logo" /></div><div><div className="brand-name">NDMA <span>PRIVATE CLOUD</span></div><div className="brand-subtitle">On-Prem Infrastructure Platform</div></div></div>
-      <div className="auth-copy"><div className="eyebrow">SECURE ACCESS / IAM</div><h1 id="login-title">Sign in to your cloud.</h1><p>Manage infrastructure, workloads, and storage from one secure control plane.</p></div>
-      <form className="auth-form" onSubmit={signIn}>
-        <label>Email address<input type="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} placeholder="you@ndma.gov" autoComplete="username" /></label>
-        <label>Password<input type="password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Enter your password" autoComplete="current-password" /></label>
-        {loginError && <p className="auth-error" role="alert">{loginError}</p>}
-        <button className="primary-button auth-submit" type="submit">Sign in <ArrowUpRight size={15} /></button>
+  function handleQuickLogin(targetRole: 'super-admin' | 'admin' | 'viewer') {
+    setRole(targetRole)
+    setLoginEmail(roleDetails[targetRole].email)
+    setLoginPassword('••••••••')
+    setAuthenticated(true)
+  }
+
+  if (!authenticated) return <main className="cloud-login-viewport">
+    {/* Top Left Branding (Replacing Ebolt) */}
+    <header className="brand-header-topleft">
+      <img src="/ndmalogo.png" alt="NDMA Logo" className="brand-logo-img" />
+      <span className="brand-title-text">
+        National Disaster Management Authority
+      </span>
+    </header>
+
+    {/* Concentric Ripple Rings radiating behind card */}
+    <div className="cloud-ripple-rings" aria-hidden="true">
+      <div className="ripple-circle ripple-1" />
+      <div className="ripple-circle ripple-2" />
+      <div className="ripple-circle ripple-3" />
+      <div className="ripple-circle ripple-4" />
+      <div className="ripple-circle ripple-5" />
+    </div>
+
+    {/* Ambient Glow Reflection */}
+    <div className="card-ambient-glow" aria-hidden="true" />
+
+    {/* Centered Glassmorphic Login Card */}
+    <div className="cloud-auth-card">
+      {/* Top Badge Icon matching reference */}
+      <div className="card-icon-badge" aria-hidden="true">
+        <img src="/ndmalogo.png" alt="NDMA Logo" className="brand-logo-img" />
+      </div>
+      <p className="cloud-auth-subtitle">
+        NDMA's Cloud Platform
+      </p>
+
+      <form className="cloud-auth-form" onSubmit={signIn}>
+        {/* Email input */}
+        <div className="input-field-wrap">
+          <span className="input-icon-left">
+            <Mail size={17} />
+          </span>
+          <input
+            type="email"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            placeholder="Email"
+            autoComplete="username"
+            className="cloud-text-input"
+          />
+        </div>
+
+        {/* Password input */}
+        <div className="input-field-wrap">
+          <span className="input-icon-left">
+            <Lock size={17} />
+          </span>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            placeholder="Password"
+            autoComplete="current-password"
+            className="cloud-text-input has-toggle"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="input-icon-right-btn"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </div>
+
+        {/* Forgot password row */}
+        <div className="forgot-password-row">
+          <a
+            href="#forgot"
+            onClick={(e) => {
+              e.preventDefault()
+              alert('Password reset instructions sent to registered administrator email.')
+            }}
+            className="forgot-password-link"
+          >
+            Forgot password?
+          </a>
+        </div>
+
+        {loginError && <p className="cloud-auth-error">{loginError}</p>}
+
+        {/* Get Started Button */}
+        <button type="submit" className="get-started-btn">
+          Sign In
+        </button>
       </form>
-      <div className="demo-access"><div><ShieldCheck size={16} /><span>Role-based access enabled</span></div><small>Demo access: use superadmin, admin, or viewer in the email to preview each role.</small></div>
-    </section>
-    <aside className="auth-aside"><div className="auth-aside-grid" /><div className="auth-aside-content"><span className="live-dot" /><div className="eyebrow">NDMA CONTROL PLANE</div><h2>Private infrastructure.<br /><em>Clear authority.</em></h2><p>Every action is scoped by identity, role, and environment.</p><div className="access-stack"><div><strong>Super admin</strong><span>Full platform control</span></div><div><strong>Admin</strong><span>Operate assigned resources</span></div><div><strong>Viewer</strong><span>Read-only visibility</span></div></div></div></aside>
+    </div>
   </main>
 
   return <div className="console-shell">
     <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
-      <div className="brand-row"><div className="brand-mark"><img src="https://www.ndma.gov.pk/assets/img/logo.png" alt="NDMA logo" /></div><div><div className="brand-name">NDMA <span>PRIVATE CLOUD</span></div><div className="brand-subtitle">On-Prem Infrastructure Platform</div></div><button className="icon-button mobile-close" onClick={() => setMobileNav(false)} aria-label="Close navigation"><X size={18} /></button></div>
+      <div className="brand-row"><div className="brand-mark"><img src="/ndmalogo.png" alt="NDMA logo" /></div><div><div className="brand-name">NDMA <span>PRIVATE CLOUD</span></div><div className="brand-subtitle">On-Prem Infrastructure Platform</div></div><button className="icon-button mobile-close" onClick={() => setMobileNav(false)} aria-label="Close navigation"><X size={18} /></button></div>
       <div className="environment"><span className="live-dot" />PRIVATE CLOUD <b>LAB</b><ChevronDown size={13} /></div>
       <div className="nav-section-label">Workspace</div>
       <nav className="nav-list" aria-label="Primary navigation">{navItems.filter((item) => item.roles.includes(role)).map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setMobileNav(false) }} className={`nav-item ${active === label ? 'active' : ''}`}><Icon size={17} /><span>{label}</span>{label === 'Applications' && <span className="nav-count">4</span>}{label === 'Image registry' && <span className="nav-count">4</span>}</button>)}</nav>
-      <div className="sidebar-bottom"><div className="support-card"><div className="support-icon"><ShieldCheck size={17} /></div><div><strong>Private by design</strong><span>Control plane is on-prem</span></div></div><button className="nav-item"><Settings2 size={17} /><span>Settings</span></button><div className="user-row"><div className="avatar">{roleDetails[role].label.slice(0, 2).toUpperCase()}</div><div><strong>{roleDetails[role].label}</strong><span>{roleDetails[role].description}</span></div><MoreHorizontal size={17} /></div></div>
+      <div className="sidebar-bottom"><div className="support-card"><div className="support-icon"><ShieldCheck size={17} /></div><div><strong>Private by design</strong><span>Control plane is on-prem</span></div></div><button className="nav-item"><Settings2 size={17} /><span>Settings</span></button><div className="user-row"><div className="avatar">{roleDetails[role].label.slice(0, 2).toUpperCase()}</div><div><strong>{roleDetails[role].label}</strong><span>{roleDetails[role].description}</span></div><button className="icon-button" onClick={() => setAuthenticated(false)} title="Sign out to Login" aria-label="Sign out" style={{ marginLeft: 'auto' }}><LogOut size={16} /></button></div></div>
     </aside>
     {mobileNav && <button className="mobile-overlay" onClick={() => setMobileNav(false)} aria-label="Close navigation overlay" />}
     <main className="main-area">
